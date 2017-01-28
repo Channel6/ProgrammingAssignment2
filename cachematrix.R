@@ -1,34 +1,63 @@
-## Put comments here that give an overall description of what your
-## functions do
+## cachematrix.R:
+## compute a matrix object's inverse, then store it in the cache for easier retrieval
 
-## Write a short comment describing this function
-
+## makeCacheMatrix: create a special "matrix" object that can cache its inverse.
+## Eseentially, this function emulates a matrix object by generating a list with
+## callable objects. These objects perform the following tasks:
+## # Create and set the matrix for callback;
+## # get the matrix;
+## # compute and store the matrix inverse;
+## # retrieve the matrix inverse.
 makeCacheMatrix <- function(x = matrix()) {
-	matrix <- NULL
+	inverted <- NULL
 	set <- function(y) {
 		x <<- y
-		matrix <<- NULL
+		inverted <<- NULL
 	}
 	get <- function() x
-	setinverse <- function(solve) matrix <<- solve
-	getinverse <- function() matrix
-	list(set = set, get = get,
-		setinverse = setinverse,
-		getinverse = getinverse)
+	setinverse <- function(solve) inverted <<- solve
+	getinverse <- function() inverted
+	list(set = set, get = get, setinverse = setinverse, getinverse = getinverse)
 }
 
-
-## Write a short comment describing this function
+## cacheSolve: Calculate the inverse of the special aforementioned "matrix".
+## The methodology as follows: 
+## # Check for previously-computed matrix inverse;
+## # If alredy computed, retrieve inverse from cache and bypass computation;
+## # If not, calculate inverse of this "matrix", and cache value of the inverse.
 
 cacheSolve <- function(x, ...) {
         ## Return a matrix that is the inverse of 'x'
-	matrix <- x$getinverse()
-	if(!is.null(matrix)) {
-		message("getting cached data")
-		return(matrix)
+	inverted <- x$getinverse()
+	if(!is.null(inverted)) {
+		message("##getting cached data")
+		return(inverted)
 	}
 	data <- x$get()
-	matrix <- solve(data, ...)
-	x$setinverse(matrix)
-	matrix
+	inverted <- solve(data, ...)
+	x$setinverse(inverted)
+	inverted
 }
+## Testing:
+# > test <- matrix(1:4, nrow = 2, ncol = 2)
+# > storage <- makeCacheMatrix(test)
+# > storage$get()
+#      [,1] [,2]
+# [1,]    1    3
+# [2,]    2    4
+#
+# # get inverse from fresh matrix
+# > storage$getinv()
+# NULL
+# # no previous inverse, so make one
+# > cacheSolve(storage)
+#      [,1] [,2]
+# [1,]   -2  1.5
+# [2,]    1 -0.5
+#  retrieve inverse from cache
+# > cacheSolve(storage)
+# ##getting cached data
+#      [,1] [,2]
+# [1,]   -2  1.5
+# [2,]    1 -0.5
+
